@@ -44,6 +44,11 @@ jobs:
         run: |
           npm install
           npm run build:web
+      - name: Generate PGM launcher icon
+        run: |
+          mkdir -p resources
+          node -e "require('sharp')('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png')"
+          npx @capacitor/assets generate --android
       - name: Generate Android project
         run: |
           npx cap add android
