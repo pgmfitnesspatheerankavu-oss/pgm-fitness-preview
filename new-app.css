@@ -22,3 +22,6 @@ input,select,textarea{padding:10px}
 nav{gap:6px}
 .tab{padding:8px 11px}
 html{scroll-behavior:auto}
+
+/* Keep the viewport steady after saving forms; navigation changes only on tap. */
+html{scroll-behavior:auto;overscroll-behavior-y:contain} body{overflow-anchor:none} .view{overflow-anchor:none} button{touch-action:manipulation}
