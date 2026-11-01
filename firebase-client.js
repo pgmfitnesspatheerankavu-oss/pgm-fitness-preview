@@ -28,9 +28,23 @@ export async function signIn(email, password) {
 }
 export async function signOutUser() { await signOut(auth); }
 export function watchAuth(callback) {
+  // Ignore an older async auth/profile check if Firebase has already emitted
+  // a newer state. This prevents the initial signed-out event from hiding the
+  // dashboard immediately after a successful sign-in.
+  let revision = 0;
   return onAuthStateChanged(auth, async user => {
-    try { callback(user ? await resolveRole(user) : { allowed: false, reason: "signed-out" }, user); }
-    catch (error) { callback({ allowed: false, reason: "role-check-failed", error }, user); }
+    const eventRevision = ++revision;
+    const stillCurrent = () =>
+      eventRevision === revision &&
+      (auth.currentUser?.uid || null) === (user?.uid || null);
+    try {
+      const role = user
+        ? await resolveRole(user)
+        : { allowed: false, reason: "signed-out" };
+      if (stillCurrent()) callback(role, user);
+    } catch (error) {
+      if (stillCurrent()) callback({ allowed: false, reason: "role-check-failed", error }, user);
+    }
   });
 }
 
