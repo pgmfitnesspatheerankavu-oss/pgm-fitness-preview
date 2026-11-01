@@ -17,7 +17,7 @@ export async function uploadMemberPhoto(memberId, file) {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY,
       "Content-Type": file.type,
-      "x-upsert": "true"
+      "x-upsert": "false"
     },
     body: file
   });
