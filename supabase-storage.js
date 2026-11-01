@@ -15,6 +15,7 @@ export async function uploadMemberPhoto(memberId, file) {
     method: "POST",
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY,
       "Content-Type": file.type,
       "x-upsert": "true"
     },
@@ -23,7 +24,7 @@ export async function uploadMemberPhoto(memberId, file) {
   if (!response.ok) {
     let detail = "";
     try { const data = await response.json(); detail = data.message || data.error || data.statusCode || ""; } catch (_) {}
-    if (response.status === 403 || response.status === 400) throw new Error("Supabase Storage upload blocked. Supabase SQL Editor-ൽ നൽകിയ Storage policy ചേർക്കുക. " + detail);
+    if (response.status === 403 || response.status === 400) throw new Error("Supabase Storage permission/bucket policy പ്രശ്നം. member-photos bucket public ആണെന്നും upload policy അനുവദിക്കുന്നുണ്ടെന്നും പരിശോധിക്കുക. " + detail);
     throw new Error("Supabase photo upload failed (" + response.status + "). " + detail);
   }
   return { path, url: SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/" + path.split("/").map(encodeURIComponent).join("/") };
