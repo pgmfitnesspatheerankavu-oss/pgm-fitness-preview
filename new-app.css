@@ -28,3 +28,36 @@ html{scroll-behavior:auto;overscroll-behavior-y:contain} body{overflow-anchor:no
 
 /* Member photo thumbnails open in a full-screen viewer when tapped. */
 .member-avatar{width:64px;height:64px;object-fit:cover;border-radius:12px;flex:0 0 64px;cursor:zoom-in;border:1px solid #d7deea}.member-photo-preview{display:block;max-width:120px;max-height:120px;object-fit:cover;border-radius:12px;margin:8px 0}.photo-viewer{width:min(96vw,900px);max-width:96vw;max-height:94vh;padding:12px;background:#101828;border:0;border-radius:14px;overflow:auto}.photo-viewer::backdrop{background:#000d}.photo-viewer button{display:block;margin:0 0 10px auto}.photo-viewer img{display:block;width:100%;max-height:82vh;object-fit:contain;border-radius:8px}
+
+
+/* Mobile gesture containment: keep the app content inside the viewport. */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+body {
+  position: relative;
+  touch-action: pan-y;
+}
+#app, .shell, .view, .panel {
+  min-width: 0;
+  max-width: 100%;
+}
+#app {
+  overflow-x: clip;
+}
+nav {
+  max-width: 100%;
+  overflow-x: clip;
+}
+.view, #memberList, .view > div {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  .shell { width: 100%; max-width: 100%; }
+  .stats { min-width: 0; }
+  .stats article { min-width: 0; overflow-wrap: anywhere; }
+  input, select, textarea, button { max-width: 100%; }
+}
