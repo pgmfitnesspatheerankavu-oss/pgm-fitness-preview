@@ -1,8 +1,8 @@
 {
-  "name": "pgm-fitness-android",
+  "name": "hyfit-android",
   "version": "1.0.0",
   "private": true,
-  "description": "Android wrapper build for PGM Fitness Centre",
+  "description": "Android wrapper build for HYFIT Fitness Centre",
   "scripts": {
     "build:web": "node -e \"const fs=require('fs');fs.rmSync('www',{recursive:true,force:true});fs.mkdirSync('www/icons',{recursive:true});for(const f of ['new-app.html','new-app.css','new-app.js','firebase-config.js','balance-calculator.js','access-policy.js','firebase-client.js','supabase-storage.js','cloud-data.js','cloud-data-policy.js','auth-policy.js','staff-management-policy.js','manifest.webmanifest'])fs.copyFileSync(f,'www/'+(f==='new-app.html'?'index.html':f));for(const f of ['pgm-logo.jpg','icon.svg'])fs.copyFileSync('icons/'+f,'www/icons/'+f);\""
   },
