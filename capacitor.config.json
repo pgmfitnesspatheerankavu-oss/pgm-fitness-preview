@@ -1,6 +1,6 @@
 {
-  "appId": "com.pgmfitness.centre",
-  "appName": "PGM Fitness",
+  "appId": "com.hyfit.fitness",
+  "appName": "HYFIT",
   "webDir": "www",
   "bundledWebRuntime": false
 }
