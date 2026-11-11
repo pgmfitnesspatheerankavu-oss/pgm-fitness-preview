@@ -1,4 +1,4 @@
-// HYFIT Firebase Web App configuration.
+// HYFIT Firebase Web App configuration — bundled into the Android www assets.
 // This file is intentionally scoped to the HYFIT branch.
 // Never copy PGM credentials or service-account keys into this file.
 window.PGM_FIREBASE_CONFIG = {
