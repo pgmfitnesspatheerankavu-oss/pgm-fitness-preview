@@ -111,5 +111,5 @@ body:has(#app:not([hidden])) {
 }
 
 
-/* Official PGM logo in the app header. */
-.shell>header>div:first-child{display:flex;align-items:center;gap:10px}.shell>header>div:first-child::before{content:"";display:block;width:48px;height:48px;flex:0 0 48px;border-radius:50%;border:2px solid #ef1b24;background:#ffca05 url('./icons/pgm-logo.jpg') center/cover no-repeat}@media(max-width:480px){.shell>header>div:first-child::before{width:42px;height:42px;flex-basis:42px}}
+/* HYFIT app header identity. */
+.shell>header>div:first-child{display:flex;align-items:center;gap:10px}.shell>header>div:first-child::before{content:"";display:block;width:48px;height:48px;flex:0 0 48px;border-radius:50%;border:2px solid #ef1b24;background:#ffca05 linear-gradient(135deg,#111827,#2563eb) center/cover no-repeat}@media(max-width:480px){.shell>header>div:first-child::before{width:42px;height:42px;flex-basis:42px}}
