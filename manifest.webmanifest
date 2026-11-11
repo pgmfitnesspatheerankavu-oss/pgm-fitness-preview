@@ -1,7 +1,7 @@
 {
-  "name": "PGM FITNESS",
-  "short_name": "PGM FITNESS",
-  "description": "PGM Fitness Centre Management",
+  "name": "HYFIT",
+  "short_name": "HYFIT",
+  "description": "HYFIT Fitness Centre Management",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
