@@ -113,3 +113,4 @@ body:has(#app:not([hidden])) {
 
 /* HYFIT app header identity. */
 .shell>header>div:first-child{display:flex;align-items:center;gap:10px}.shell>header>div:first-child::before{content:"";display:block;width:48px;height:48px;flex:0 0 48px;border-radius:50%;border:2px solid #ef1b24;background:#ffca05 linear-gradient(135deg,#111827,#2563eb) center/cover no-repeat}@media(max-width:480px){.shell>header>div:first-child::before{width:42px;height:42px;flex-basis:42px}}
+\n/* Owner phone login and SMS password reset */\n#ownerPasswordPanel{max-width:100%;background:#f7f9fd}#ownerPasswordPanel h3{margin:0 0 8px;font-size:16px}#ownerPasswordPanel p{font-size:13px;color:#66738a}#ownerPasswordPanel button{width:100%;margin:8px 0}\n
