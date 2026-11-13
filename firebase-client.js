@@ -17,7 +17,8 @@ if (!firebaseConfig || !OWNER_UID) throw new Error("Firebase configuration is no
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);\nlet ownerOtpCompleting = false;
+export const storage = getStorage(app);
+let ownerOtpCompleting = false;
 
 export function normalizeOwnerPhone(value) {
   const raw = String(value || "").trim();
