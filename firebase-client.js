@@ -91,6 +91,7 @@ export function watchAuth(callback) {
     const eventRevision = ++revision;
     const stillCurrent = () => eventRevision === revision && (auth.currentUser?.uid || null) === (user?.uid || null);
     try {
+      if (ownerOtpCompleting) return;
       const role = user ? await resolveRole(user) : { allowed: false, reason: "signed-out" };
       if (stillCurrent()) callback(role, user);
     } catch (error) {
