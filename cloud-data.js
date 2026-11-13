@@ -3,7 +3,7 @@
 // Firestore Security Rules are the final authorization boundary.
 import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, writeBatch, setDoc
+  query, where, orderBy, serverTimestamp, writeBatch, setDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { auth, db, resolveRole } from "./firebase-client.js";
 import { canRole } from "./access-policy.js";
@@ -246,4 +246,38 @@ export async function saveStaffProfile(input) {
   const { uid, profile } = staffProfilePayload(input);
   if (uid === user.uid) throw new Error("Owner account cannot be changed as Staff");
   await setDoc(doc(db, "users", uid), { ...profile, updatedAt: serverTimestamp(), updatedBy: user.uid }, { merge: true });
+}
+
+
+// Live cross-device updates. Each listener uses the signed-in user's role and
+// the same authorization-scoped query as the corresponding one-time read.
+export async function subscribeRealtimeData(onChange, onError = () => {}) {
+  if (typeof onChange !== "function") throw new Error("Realtime callback required");
+  const { user, role, permissions } = await currentRole();
+  const stops = [];
+  const watch = (name, q) => {
+    stops.push(onSnapshot(q, snapshot => {
+      onChange(name, snapshot.docs.map(item => ({ id: item.id, ...item.data() })));
+    }, error => onError(name, error)));
+  };
+  if (canRole(role, "members.read", permissions)) {
+    watch("members", query(collection(db, "members"), orderBy("name")));
+  }
+  if (canRole(role, "payments.read.all", permissions)) {
+    watch("payments", query(collection(db, "payments"), orderBy("date", "desc")));
+  } else if (canRole(role, "payments.read.own", permissions)) {
+    watch("payments", query(collection(db, "payments"), where("createdBy", "==", user.uid)));
+  }
+  if (canRole(role, "renewals.read.all", permissions)) {
+    watch("renewals", query(collection(db, "renewals"), orderBy("date", "desc")));
+  } else if (canRole(role, "renewals.read.own", permissions)) {
+    watch("renewals", query(collection(db, "renewals"), where("createdBy", "==", user.uid)));
+  }
+  if (canRole(role, "expenses.read", permissions)) {
+    watch("expenses", query(collection(db, "expenses"), orderBy("date", "desc")));
+  }
+  if (canRole(role, "attendance.read", permissions)) {
+    watch("attendance", collection(db, "attendance"));
+  }
+  return () => stops.forEach(stop => stop());
 }
