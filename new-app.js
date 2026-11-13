@@ -29,7 +29,7 @@ function authDiagnostic(role,user){
 function showAuth(role,user){if(role?.allowed&&(role.role==="owner"||role.role==="staff")){if(realtimeStop){realtimeStop();realtimeStop=null;}currentRole=role.role;currentPermissions=role.permissions||[];login.hidden=true;app.hidden=false;$("logout").hidden=false;$("roleLabel").textContent=currentRole==="owner"?"OWNER DASHBOARD":"STAFF DASHBOARD";document.querySelectorAll(".owner-only").forEach(x=>x.hidden=currentRole!=="owner");$("memberForm").elements.planFee.readOnly=true;$("memberForm").elements.registrationFee.readOnly=false;$("renewalForm").elements.feeAmount.readOnly=true;const dueCard=$("dueMembers").closest("article");if(dueCard)dueCard.hidden=currentRole==="staff";document.querySelectorAll(".tab").forEach(x=>{const tab=x.dataset.tab,needed={members:"members.read",payments:"payments.read.own",renewals:"renewals.read.own",attendance:"attendance.read",expenses:"expenses.read",income:"payments.read.all",reports:"reports.read",staff:"staff.manage"}[tab];x.hidden=!(tab==="payments"?(hasPermission("payments.read.own")||hasPermission("payments.read.all")):tab==="renewals"?(hasPermission("renewals.read.own")||hasPermission("renewals.read.all")):tab==="reports"?(hasPermission("reports.read")&&hasPermission("payments.read.all")&&hasPermission("expenses.read")):hasPermission(needed));});status.textContent="";refresh();subscribeRealtimeData((name)=>{
  if(realtimeRefreshQueued)return;
  realtimeRefreshQueued=true;
- queueMicrotask(async()=>{
+ Promise.resolve().then(async()=>{
   realtimeRefreshQueued=false;
   if(!auth.currentUser)return;
   await refresh();
