@@ -61,23 +61,28 @@ export async function startOwnerPhoneVerification(phoneInput, verifier) {
 }
 export async function completeOwnerPasswordSetup(confirmation, code, newPassword) {
   if (String(newPassword || "").length < 6) throw new Error("Password must be at least 6 characters.");
-  const credential = await confirmation.confirm(code);
-  const user = credential.user;
-  const phone = normalizeOwnerPhone(user.phoneNumber);
-  if (!phone) {
-    await signOut(auth);
-    throw new Error("Verified number is not approved for Owner access.");
+  ownerOtpCompleting = true;
+  try {
+    const credential = await confirmation.confirm(code);
+    const user = credential.user;
+    const phone = normalizeOwnerPhone(user.phoneNumber);
+    if (!phone) {
+      await signOut(auth);
+      throw new Error("Verified number is not approved for Owner access.");
+    }
+    const alias = ownerAlias(phone);
+    if (!user.email) {
+      await linkWithCredential(user, EmailAuthProvider.credential(alias, newPassword));
+    } else if (user.email.toLowerCase() === alias.toLowerCase()) {
+      await updatePassword(user, newPassword);
+    } else {
+      throw new Error("This phone account is already linked to a different email. Contact the app administrator.");
+    }
+    await auth.currentUser.reload();
+    return await resolveRole(auth.currentUser);
+  } finally {
+    ownerOtpCompleting = false;
   }
-  const alias = ownerAlias(phone);
-  if (!user.email) {
-    await linkWithCredential(user, EmailAuthProvider.credential(alias, newPassword));
-  } else if (user.email.toLowerCase() === alias.toLowerCase()) {
-    await updatePassword(user, newPassword);
-  } else {
-    throw new Error("This phone account is already linked to a different email. Contact the app administrator.");
-  }
-  await user.reload();
-  return resolveRole(auth.currentUser);
 }
 export async function signOutUser() { await signOut(auth); }
 export function watchAuth(callback) {
