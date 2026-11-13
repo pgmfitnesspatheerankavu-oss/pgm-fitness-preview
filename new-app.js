@@ -2,9 +2,9 @@ import { calculateBalanceDue } from "./balance-calculator.js";
 import { STAFF_CAPABILITIES, STAFF_CAPABILITY_LABELS } from "./access-policy.js";
 import { signIn, signOutUser, watchAuth, auth } from "./firebase-client.js";
 import { uploadMemberPhoto } from "./supabase-storage.js";
-import { listMembers, createMember, createMemberWithInitialPayment, updateMember, deleteMember, createPayment, deletePayment, deleteRenewal, listAllPayments, listAllRenewals, saveRenewalWithPayment, recordAttendance, listAttendanceForDate, createExpense, updateExpense, deleteExpense, listExpenses, listMyPayments, listMyRenewals, listStaffProfiles, saveStaffProfile } from "./cloud-data.js";
+import { listMembers, createMember, createMemberWithInitialPayment, updateMember, deleteMember, createPayment, deletePayment, deleteRenewal, listAllPayments, listAllRenewals, saveRenewalWithPayment, recordAttendance, listAttendanceForDate, createExpense, updateExpense, deleteExpense, listExpenses, listMyPayments, listMyRenewals, listStaffProfiles, saveStaffProfile, subscribeRealtimeData } from "./cloud-data.js";
 const $=id=>document.getElementById(id), login=$("login"), app=$("app"), status=$("loginStatus");
-let members=[], dashboardPayments=[], dashboardRenewals=[], currentRole="owner", currentPermissions=[];
+let members=[], dashboardPayments=[], dashboardRenewals=[], currentRole="owner", currentPermissions=[], realtimeStop=null, realtimeRefreshQueued=false;
 const hasPermission=cap=>currentRole==="owner"||currentPermissions.includes(cap);
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const PLAN_PRICES={"1 Month":650,"3 Months":1600,"6 Months":2700,"12 Months":4700,"Couple / Duo - 3 Months":3000};
@@ -26,7 +26,23 @@ function authDiagnostic(role,user){
  };
  return "Login സ്ഥിരീകരിച്ചു; പക്ഷേ App access അനുവദിച്ചില്ല. കാരണം: "+reason+". "+(labels[reason]||"")+" UID അവസാന 6 അക്ഷരങ്ങൾ: "+suffix+(detail?" · "+detail:"");
 }
-function showAuth(role,user){if(role?.allowed&&(role.role==="owner"||role.role==="staff")){currentRole=role.role;currentPermissions=role.permissions||[];login.hidden=true;app.hidden=false;$("logout").hidden=false;$("roleLabel").textContent=currentRole==="owner"?"OWNER DASHBOARD":"STAFF DASHBOARD";document.querySelectorAll(".owner-only").forEach(x=>x.hidden=currentRole!=="owner");$("memberForm").elements.planFee.readOnly=true;$("memberForm").elements.registrationFee.readOnly=false;$("renewalForm").elements.feeAmount.readOnly=true;const dueCard=$("dueMembers").closest("article");if(dueCard)dueCard.hidden=currentRole==="staff";document.querySelectorAll(".tab").forEach(x=>{const tab=x.dataset.tab,needed={members:"members.read",payments:"payments.read.own",renewals:"renewals.read.own",attendance:"attendance.read",expenses:"expenses.read",income:"payments.read.all",reports:"reports.read",staff:"staff.manage"}[tab];x.hidden=!(tab==="payments"?(hasPermission("payments.read.own")||hasPermission("payments.read.all")):tab==="renewals"?(hasPermission("renewals.read.own")||hasPermission("renewals.read.all")):tab==="reports"?(hasPermission("reports.read")&&hasPermission("payments.read.all")&&hasPermission("expenses.read")):hasPermission(needed));});status.textContent="";refresh();}else{login.hidden=false;app.hidden=true;$("logout").hidden=true;const dueCard=$("dueMembers").closest("article");if(dueCard)dueCard.hidden=false;if(user)status.textContent=authDiagnostic(role,user);}}
+function showAuth(role,user){if(role?.allowed&&(role.role==="owner"||role.role==="staff")){if(realtimeStop){realtimeStop();realtimeStop=null;}currentRole=role.role;currentPermissions=role.permissions||[];login.hidden=true;app.hidden=false;$("logout").hidden=false;$("roleLabel").textContent=currentRole==="owner"?"OWNER DASHBOARD":"STAFF DASHBOARD";document.querySelectorAll(".owner-only").forEach(x=>x.hidden=currentRole!=="owner");$("memberForm").elements.planFee.readOnly=true;$("memberForm").elements.registrationFee.readOnly=false;$("renewalForm").elements.feeAmount.readOnly=true;const dueCard=$("dueMembers").closest("article");if(dueCard)dueCard.hidden=currentRole==="staff";document.querySelectorAll(".tab").forEach(x=>{const tab=x.dataset.tab,needed={members:"members.read",payments:"payments.read.own",renewals:"renewals.read.own",attendance:"attendance.read",expenses:"expenses.read",income:"payments.read.all",reports:"reports.read",staff:"staff.manage"}[tab];x.hidden=!(tab==="payments"?(hasPermission("payments.read.own")||hasPermission("payments.read.all")):tab==="renewals"?(hasPermission("renewals.read.own")||hasPermission("renewals.read.all")):tab==="reports"?(hasPermission("reports.read")&&hasPermission("payments.read.all")&&hasPermission("expenses.read")):hasPermission(needed));});status.textContent="";refresh();subscribeRealtimeData((name)=>{
+ if(realtimeRefreshQueued)return;
+ realtimeRefreshQueued=true;
+ queueMicrotask(async()=>{
+  realtimeRefreshQueued=false;
+  if(!auth.currentUser)return;
+  await refresh();
+  const active=document.querySelector(".tab.active")?.dataset.tab;
+  if(active==="payments")loadPayments();
+  if(active==="renewals")loadRenewals();
+  if(active==="attendance")loadAttendance();
+  if(active==="expenses")loadExpenses();
+  if(active==="income")loadOtherIncome();
+ }).catch(err=>{const cloud=$("cloudStatus");if(cloud)cloud.textContent="Live sync update failed: "+err.message;});
+},(name,error)=>{const cloud=$("cloudStatus");if(cloud)cloud.textContent="Live sync "+name+" failed: "+error.message;}).then(stop=>{
+ if(auth.currentUser)realtimeStop=stop;else stop();
+}).catch(err=>{const cloud=$("cloudStatus");if(cloud)cloud.textContent="Live sync setup failed: "+err.message;});}else{if(realtimeStop){realtimeStop();realtimeStop=null;}login.hidden=false;app.hidden=true;$("logout").hidden=true;const dueCard=$("dueMembers").closest("article");if(dueCard)dueCard.hidden=false;if(user)status.textContent=authDiagnostic(role,user);}}
 watchAuth(showAuth);
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);status.textContent="Signing in…";try{const role=await signIn(f.get("email"),f.get("password"));if(!role.allowed)status.textContent=authDiagnostic(role,auth.currentUser);else showAuth(role,auth.currentUser);}catch(err){status.textContent="Firebase Login error: "+(err.code||"")+" "+(err.message||"Login failed");}});
 $("logout").addEventListener("click",signOutUser);
