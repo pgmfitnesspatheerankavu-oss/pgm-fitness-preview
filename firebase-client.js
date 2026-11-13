@@ -1,13 +1,13 @@
 // PGM FITNESS Firebase client foundation.
 // Add the Firebase web-app configuration and fixed Owner UID before enabling.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signInWithPhoneNumber, EmailAuthProvider, linkWithCredential, updatePassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { decideAccess } from "./auth-policy.js";
 
 const firebaseConfig = window.PGM_FIREBASE_CONFIG;
-const OWNER_UID = window.PGM_OWNER_UID;
+const OWNER_UID = window.PGM_OWNER_UID;\nconst OWNER_PHONES = new Set(["+918606369000","+918606369444","+918157995527","+917736359894"]);
 if (!firebaseConfig || !OWNER_UID) throw new Error("Firebase configuration is not installed.");
 
 const app = initializeApp(firebaseConfig);
