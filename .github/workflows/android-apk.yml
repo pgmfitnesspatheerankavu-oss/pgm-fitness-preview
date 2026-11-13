@@ -18,6 +18,8 @@ on:
       - "auth-policy.js"
       - "staff-management-policy.js"
       - "icons/**"
+      - "manifest.webmanifest"
+      - "service-worker.js"
       - "package.json"
       - "capacitor.config.json"
       - ".github/workflows/android-apk.yml"
