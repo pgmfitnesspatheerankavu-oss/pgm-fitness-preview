@@ -4,7 +4,7 @@
   "private": true,
   "description": "Android wrapper build for HYFIT Fitness Centre",
   "scripts": {
-    "build:web": "node -e \"const fs=require('fs');fs.rmSync('www',{recursive:true,force:true});fs.mkdirSync('www/icons',{recursive:true});for(const f of ['new-app.html','new-app.css','new-app.js','firebase-config.js','balance-calculator.js','access-policy.js','firebase-client.js','supabase-storage.js','cloud-data.js','cloud-data-policy.js','auth-policy.js','staff-management-policy.js','manifest.webmanifest','service-worker.js'])fs.copyFileSync(f,'www/'+(f==='new-app.html'?'index.html':f));for(const f of ['icon.svg','pgm-logo.jpg'])fs.copyFileSync('icons/'+f,'www/icons/'+f);\""
+    "build:web": "node -e \"const fs=require('fs');const sharp=require('sharp');(async()=>{fs.rmSync('www',{recursive:true,force:true});fs.mkdirSync('www/icons',{recursive:true});for(const f of ['new-app.html','new-app.css','new-app.js','firebase-config.js','balance-calculator.js','access-policy.js','firebase-client.js','supabase-storage.js','cloud-data.js','cloud-data-policy.js','auth-policy.js','staff-management-policy.js','manifest.webmanifest','service-worker.js'])fs.copyFileSync(f,'www/'+(f==='new-app.html'?'index.html':f));for(const f of ['icon.svg','pgm-logo.jpg'])fs.copyFileSync('icons/'+f,'www/icons/'+f);await sharp('icons/icon.svg').resize(512,512).png().toFile('www/icons/hyfit-icon-512.png');await sharp('icons/icon.svg').resize(180,180).png().toFile('www/icons/apple-touch-icon.png');})();\""
   },
   "dependencies": {
     "@capacitor/android": "7.4.3",
