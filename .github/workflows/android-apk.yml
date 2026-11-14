@@ -49,7 +49,7 @@ jobs:
       - name: Generate HYFIT launcher icon
         run: |
           mkdir -p resources
-          node -e "require('sharp')('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png')"
+          node -e "const sharp=require('sharp');Promise.all([sharp('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png'),sharp('icons/icon.svg').resize(2732,2732).png().toFile('resources/splash.png')])"
           npx @capacitor/assets generate --android
       - name: Generate Android project
         run: |
