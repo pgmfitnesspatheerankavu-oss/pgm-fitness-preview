@@ -31,8 +31,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout preview branch
+      - name: Checkout HYFIT source
         uses: actions/checkout@v4
+        with:
+          ref: hyfit-app
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -46,10 +48,10 @@ jobs:
         run: |
           npm install
           npm run build:web
-      - name: Generate HYFIT launcher icon
+      - name: Generate HYFIT native artwork
         run: |
           mkdir -p resources
-          node -e "const sharp=require('sharp');Promise.all([sharp('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png'),sharp('icons/icon.svg').resize(2732,2732).png().toFile('resources/splash.png')])"
+          node -e "const sharp=require('sharp');Promise.all([sharp('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png'),sharp('icons/icon.svg').resize(2732,2732).png().toFile('resources/splash.png')]).catch(e=>{console.error(e);process.exit(1)})"
           npx @capacitor/assets generate --android
       - name: Generate Android project
         run: |
@@ -60,10 +62,35 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-      - name: Upload APK
+      - name: Verify APK identity, HYFIT branding and icons
+        shell: bash
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          test -n "$AAPT"
+          BADGING="$("$AAPT" dump badging "$APK")"
+          echo "$BADGING" | grep -F "package: name='com.hyfit.fitness'"
+          echo "$BADGING" | grep -F "application-label:'HYFIT'"
+          echo "$BADGING" | grep -E "application-icon-[0-9]+:"
+          python3 - <<'PY'
+          import zipfile
+          apk = "android/app/build/outputs/apk/debug/app-debug.apk"
+          with zipfile.ZipFile(apk) as z:
+              names = set(z.namelist())
+              html = z.read("assets/public/index.html").decode("utf-8", "replace")
+              manifest = z.read("assets/public/manifest.webmanifest").decode("utf-8", "replace")
+              assert "HYFIT Gold Logo" in html, "HYFIT logo text missing from app page"
+              assert "./icons/hyfit-icon-512.png" in manifest, "HYFIT PWA icon missing from manifest"
+              assert "assets/public/icons/hyfit-icon-512.png" in names, "HYFIT web icon missing from APK"
+              assert "resources.arsc" in names, "Compiled Android resources missing"
+              assert any(n.startswith("res/mipmap-") and "ic_launcher" in n for n in names), "Native launcher icon resources missing"
+              assert "PGM Fitness" not in html and "pgm-logo" not in html, "Old PGM branding detected in app page"
+          print("APK checks passed: package ID, HYFIT label, page branding, PWA icon, native launcher icon and compiled resources.")
+          PY
+      - name: Upload verified debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: HYFIT-APK
+          name: HYFIT-APK-DEBUG-VERIFIED
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
