@@ -21,6 +21,7 @@ on:
       - "manifest.webmanifest"
       - "service-worker.js"
       - "package.json"
+      - "build-web.mjs"
       - "capacitor.config.json"
       - ".github/workflows/android-apk.yml"
 
@@ -80,6 +81,7 @@ jobs:
               html = z.read("assets/public/index.html").decode("utf-8", "replace")
               manifest = z.read("assets/public/manifest.webmanifest").decode("utf-8", "replace")
               assert "HYFIT Gold Logo" in html, "HYFIT logo text missing from app page"
+              assert "assets/public/new-app.bundle.js" in names, "Bundled app JavaScript missing from APK"
               assert "./icons/hyfit-icon-512.png" in manifest, "HYFIT PWA icon missing from manifest"
               assert "assets/public/icons/hyfit-icon-512.png" in names, "HYFIT web icon missing from APK"
               assert "resources.arsc" in names, "Compiled Android resources missing"
