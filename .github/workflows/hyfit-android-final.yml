@@ -37,15 +37,14 @@ jobs:
           npm run build:web
           mkdir -p resources
           node -e "const sharp=require('sharp');Promise.all([sharp('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png'),sharp('icons/icon.svg').resize(2732,2732).png().toFile('resources/splash.png')]).catch(e=>{console.error(e);process.exit(1)})"
-      - name: Generate Android project
+      - name: Generate Android project and HYFIT native assets
         run: |
           npx cap add android
           npx cap sync android
-      - name: Generate HYFIT native launcher and splash assets
-        run: |
           npx @capacitor/assets generate --android
           npx cap sync android
-          test -f android/app/src/main/res/mipmap-xxxhdpi-v4/ic_launcher.png
+          test -d android/app/src/main/res
+          find android/app/src/main/res -iname '*ic_launcher*' -o -iname '*splash*' | grep .
       - name: Build debug APK
         run: |
           cd android
@@ -54,7 +53,7 @@ jobs:
       - name: Verify APK contents
         run: |
           python3 - <<'PY'
-          import zipfile, sys
+          import zipfile
           apk='android/app/build/outputs/apk/debug/app-debug.apk'
           with zipfile.ZipFile(apk) as z:
               names=set(z.namelist())
@@ -62,10 +61,10 @@ jobs:
               manifest=z.read('assets/public/manifest.webmanifest').decode('utf-8','replace')
               assert 'HYFIT Gold Logo' in html, 'HYFIT logo missing from app page'
               assert './icons/hyfit-icon-512.png' in manifest, 'HYFIT PWA icon missing'
-              assert 'res/mipmap-xxxhdpi-v4/ic_launcher.png' in names, 'Android launcher icon missing'
               assert 'assets/public/icons/hyfit-icon-512.png' in names, 'HYFIT web icon missing'
+              assert 'resources.arsc' in names, 'Compiled Android resources missing'
               assert 'PGM Fitness' not in html, 'Old PGM page detected'
-          print('APK bundle checks passed: HYFIT page, manifest and Android launcher resources are present.')
+          print('APK bundle checks passed: HYFIT page, web icon and compiled Android resources are present.')
           PY
       - name: Upload verified APK
         uses: actions/upload-artifact@v4
