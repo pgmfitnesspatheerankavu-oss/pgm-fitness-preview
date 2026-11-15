@@ -1,12 +1,12 @@
 // HYFIT Firebase client with owner phone/password sign-in and SMS OTP password recovery.
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { initializeApp } from "firebase/app";
 import {
   getAuth, signInWithEmailAndPassword, signInWithPhoneNumber,
   EmailAuthProvider, linkWithCredential, updatePassword,
   signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+} from "firebase/auth";
+import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { decideAccess } from "./auth-policy.js";
 
 const firebaseConfig = window.PGM_FIREBASE_CONFIG;
