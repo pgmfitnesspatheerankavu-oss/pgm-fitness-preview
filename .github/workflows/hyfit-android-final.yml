@@ -1,0 +1,76 @@
+name: HYFIT Android APK (verified icon)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - hyfit-app
+    paths:
+      - '.github/workflows/hyfit-android-final.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.json'
+      - 'icons/**'
+      - 'new-app.html'
+      - 'new-app.css'
+      - 'new-app.js'
+      - 'manifest.webmanifest'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout HYFIT source
+        uses: actions/checkout@v4
+        with:
+          ref: hyfit-app
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build web bundle and source artwork
+        run: |
+          npm install
+          npm run build:web
+          mkdir -p resources
+          node -e "const sharp=require('sharp');Promise.all([sharp('icons/icon.svg').resize(1024,1024).png().toFile('resources/icon.png'),sharp('icons/icon.svg').resize(2732,2732).png().toFile('resources/splash.png')]).catch(e=>{console.error(e);process.exit(1)})"
+      - name: Generate Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Generate HYFIT native launcher and splash assets
+        run: |
+          npx @capacitor/assets generate --android
+          npx cap sync android
+          test -f android/app/src/main/res/mipmap-xxxhdpi-v4/ic_launcher.png
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Verify APK contents
+        run: |
+          python3 - <<'PY'
+          import zipfile, sys
+          apk='android/app/build/outputs/apk/debug/app-debug.apk'
+          with zipfile.ZipFile(apk) as z:
+              names=set(z.namelist())
+              html=z.read('assets/public/index.html').decode('utf-8','replace')
+              manifest=z.read('assets/public/manifest.webmanifest').decode('utf-8','replace')
+              assert 'HYFIT Gold Logo' in html, 'HYFIT logo missing from app page'
+              assert './icons/hyfit-icon-512.png' in manifest, 'HYFIT PWA icon missing'
+              assert 'res/mipmap-xxxhdpi-v4/ic_launcher.png' in names, 'Android launcher icon missing'
+              assert 'assets/public/icons/hyfit-icon-512.png' in names, 'HYFIT web icon missing'
+              assert 'PGM Fitness' not in html, 'Old PGM page detected'
+          print('APK bundle checks passed: HYFIT page, manifest and Android launcher resources are present.')
+          PY
+      - name: Upload verified APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HYFIT-APK-ICON-FIX
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
