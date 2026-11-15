@@ -4,7 +4,7 @@
 import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp, writeBatch, setDoc, onSnapshot
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+} from "firebase/firestore";
 import { auth, db, resolveRole } from "./firebase-client.js";
 import { canRole } from "./access-policy.js";
 import { staffProfilePayload } from "./staff-management-policy.js";
