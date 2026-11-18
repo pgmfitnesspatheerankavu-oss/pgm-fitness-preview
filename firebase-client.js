@@ -1,10 +1,6 @@
 // HYFIT Firebase client with owner phone/password sign-in and SMS OTP password recovery.
 import { initializeApp } from "firebase/app";
-import {
-  getAuth, signInWithEmailAndPassword, signInWithPhoneNumber,
-  EmailAuthProvider, linkWithCredential, updatePassword,
-  signOut, onAuthStateChanged
-} from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { decideAccess } from "./auth-policy.js";
@@ -18,27 +14,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-let ownerOtpCompleting = false;
-
-export function normalizeOwnerPhone(value) {
-  const raw = String(value || "").trim();
-  const digits = raw.replace(/\D/g, "");
-  const normalized = digits.length === 10 ? "+91" + digits
-    : digits.length === 12 && digits.startsWith("91") ? "+" + digits
-    : raw.startsWith("+") ? raw : "";
-  return OWNER_PHONES.has(normalized) ? normalized : "";
-}
-function ownerAlias(phone) {
-  return "owner." + phone.replace(/\D/g, "") + "@hyfit-a6f68.firebaseapp.com";
-}
-
-export async function resolveRole(user) {
-  if (!user) return decideAccess(null, OWNER_UID);
-  if (user.uid === OWNER_UID || normalizeOwnerPhone(user.phoneNumber)) return decideAccess(user, OWNER_UID);
-  const profile = await getDoc(doc(db, "users", user.uid));
-  return decideAccess(user, OWNER_UID, profile.exists() ? profile.data() : null);
-}
-
 export async function signIn(email, password) {
   const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
   return resolveRole(credential.user);
@@ -91,8 +66,7 @@ export function watchAuth(callback) {
     const eventRevision = ++revision;
     const stillCurrent = () => eventRevision === revision && (auth.currentUser?.uid || null) === (user?.uid || null);
     try {
-      if (ownerOtpCompleting) return;
-      const role = user ? await resolveRole(user) : { allowed: false, reason: "signed-out" };
+          const role = user ? await resolveRole(user) : { allowed: false, reason: "signed-out" };
       if (stillCurrent()) callback(role, user);
     } catch (error) {
       if (stillCurrent()) callback({ allowed: false, reason: "role-check-failed", error }, user);

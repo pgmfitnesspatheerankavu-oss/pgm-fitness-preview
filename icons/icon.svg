@@ -1,9 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-<rect width="1024" height="1024" rx="220" fill="#ffca05"/>
-<rect x="36" y="36" width="952" height="952" rx="190" fill="none" stroke="#ed1c24" stroke-width="32"/>
-<circle cx="512" cy="512" r="350" fill="#ffffff"/>
-<circle cx="512" cy="512" r="326" fill="#101827"/>
-<text x="512" y="590" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="210" font-weight="900" letter-spacing="-8" fill="#ffca05">HYFIT</text>
-<path d="M300 680 H724" stroke="#ed1c24" stroke-width="26" stroke-linecap="round"/>
-<text x="512" y="755" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="66" font-weight="700" letter-spacing="8" fill="#ffffff">FITNESS</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+<title id="title">HYFIT Gold Logo</title>
+<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a6"/><stop offset=".28" stop-color="#f5d36b"/><stop offset=".62" stop-color="#c58b24"/><stop offset="1" stop-color="#ffe69a"/></linearGradient>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18243a"/><stop offset="1" stop-color="#070c16"/></linearGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+<rect x="34" y="34" width="956" height="956" rx="190" fill="none" stroke="url(#gold)" stroke-width="24"/>
+<circle cx="512" cy="420" r="290" fill="#000" opacity=".38" filter="url(#shadow)"/>
+<circle cx="512" cy="420" r="282" fill="none" stroke="url(#gold)" stroke-width="18"/>
+<path d="M292 300h72v240h-72zM660 300h72v240h-72zM364 382h296v76H364z" fill="url(#gold)"/>
+<path d="M240 334h52v172h-52zM732 334h52v172h-52z" fill="url(#gold)"/>
+<text x="512" y="690" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="150" font-weight="900" letter-spacing="4" fill="url(#gold)">HYFIT</text>
+<path d="M270 744h484" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
+<text x="512" y="818" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="700" letter-spacing="12" fill="#f5e4b4">FITNESS</text>
 </svg>
