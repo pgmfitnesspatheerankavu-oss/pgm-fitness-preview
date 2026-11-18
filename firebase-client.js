@@ -13,6 +13,12 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export async function resolveRole(user) {
+  if (!user) return decideAccess(null, OWNER_UID);
+  if (user.uid === OWNER_UID) return decideAccess(user, OWNER_UID);
+  const profile = await getDoc(doc(db, "users", user.uid));
+  return decideAccess(user, OWNER_UID, profile.exists() ? profile.data() : null);
+}
 export async function signIn(email, password) {
   const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
   return resolveRole(credential.user);
@@ -24,7 +30,7 @@ export function watchAuth(callback) {
     const eventRevision = ++revision;
     const stillCurrent = () => eventRevision === revision && (auth.currentUser?.uid || null) === (user?.uid || null);
     try {
-          const role = user ? await resolveRole(user) : { allowed: false, reason: "signed-out" };
+      const role = user ? await resolveRole(user) : { allowed: false, reason: "signed-out" };
       if (stillCurrent()) callback(role, user);
     } catch (error) {
       if (stillCurrent()) callback({ allowed: false, reason: "role-check-failed", error }, user);
