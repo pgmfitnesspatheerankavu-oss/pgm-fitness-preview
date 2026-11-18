@@ -1,4 +1,4 @@
-// HYFIT Firebase client with owner phone/password sign-in and SMS OTP password recovery.
+// HYFIT Firebase client with email/password authentication.
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
@@ -7,7 +7,6 @@ import { decideAccess } from "./auth-policy.js";
 
 const firebaseConfig = window.PGM_FIREBASE_CONFIG;
 const OWNER_UID = window.PGM_OWNER_UID;
-const OWNER_PHONES = new Set(["+918606369000", "+918606369444", "+918157995527", "+917736359894"]);
 if (!firebaseConfig || !OWNER_UID) throw new Error("Firebase configuration is not installed.");
 
 const app = initializeApp(firebaseConfig);
@@ -17,47 +16,6 @@ export const storage = getStorage(app);
 export async function signIn(email, password) {
   const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
   return resolveRole(credential.user);
-}
-export async function signInOwnerWithPhonePassword(phoneInput, password) {
-  const phone = normalizeOwnerPhone(phoneInput);
-  if (!phone) throw new Error("This mobile number is not registered for Owner access.");
-  const credential = await signInWithEmailAndPassword(auth, ownerAlias(phone), password);
-  const role = await resolveRole(credential.user);
-  if (role.role !== "owner") {
-    await signOut(auth);
-    throw new Error("Owner phone verification is not linked to this account. Use Set / Forgot Password.");
-  }
-  return role;
-}
-export async function startOwnerPhoneVerification(phoneInput, verifier) {
-  const phone = normalizeOwnerPhone(phoneInput);
-  if (!phone) throw new Error("This mobile number is not registered for Owner access.");
-  return signInWithPhoneNumber(auth, phone, verifier);
-}
-export async function completeOwnerPasswordSetup(confirmation, code, newPassword) {
-  if (String(newPassword || "").length < 6) throw new Error("Password must be at least 6 characters.");
-  ownerOtpCompleting = true;
-  try {
-    const credential = await confirmation.confirm(code);
-    const user = credential.user;
-    const phone = normalizeOwnerPhone(user.phoneNumber);
-    if (!phone) {
-      await signOut(auth);
-      throw new Error("Verified number is not approved for Owner access.");
-    }
-    const alias = ownerAlias(phone);
-    if (!user.email) {
-      await linkWithCredential(user, EmailAuthProvider.credential(alias, newPassword));
-    } else if (user.email.toLowerCase() === alias.toLowerCase()) {
-      await updatePassword(user, newPassword);
-    } else {
-      throw new Error("This phone account is already linked to a different email. Contact the app administrator.");
-    }
-    await auth.currentUser.reload();
-    return await resolveRole(auth.currentUser);
-  } finally {
-    ownerOtpCompleting = false;
-  }
 }
 export async function signOutUser() { await signOut(auth); }
 export function watchAuth(callback) {
